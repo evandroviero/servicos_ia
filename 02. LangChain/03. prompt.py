@@ -1,19 +1,15 @@
 import os
-from getpass import getpass
+from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
 from langchain_core.messages import HumanMessage, SystemMessage
 
-# --- 1. Configuração do Ambiente ---
-# Garanta que sua GOOGLE_API_KEY esteja configurada.
-# Se não estiver nas variáveis de ambiente, ela será solicitada.
-if "GOOGLE_API_KEY" not in os.environ:
-    os.environ["GOOGLE_API_KEY"] = getpass("Insira sua chave de API do Google AI: ")
+# --- 2. Configuração do Ambiente ---
+load_dotenv()
+api_key = os.getenv("GOOGLE_API_KEY")
 
 # --- 2. Inicializando o Modelo de Linguagem (LLM) ---
-# Usamos 'gemini-pro' como o modelo principal.
-# 'temperature=0' para respostas mais diretas e consistentes na tradução.
-llm = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0)
+llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash-latest", temperature=0, api_key=api_key)
 
 # --- 3. Definindo o PromptTemplate para Tradução ---
 # Este template permite criar prompts de tradução flexíveis,
