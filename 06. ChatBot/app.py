@@ -97,7 +97,14 @@ with st.sidebar:
         help="Selecione o modelo LLM que deseja usar"
     )
 
+if "messages" not in st.session_state:
+    st.session_state["messages"] = []
+
 question = st.chat_input("Como posso ajudar?")
 
-st.chat_message("user").write(question)
-st.chat_message("ai").write("resposta IA")
+if vector_store and question:
+    for message in st.session_state.messages:
+        st.chat_message(message.get("role")).write(message.get("content"))
+    
+    st.chat_message("user").write(question)
+    st.session_state.messages.append({"role": "user", "content": question})
