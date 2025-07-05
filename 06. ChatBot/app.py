@@ -13,7 +13,6 @@ from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmb
 
 api_key = os.getenv("GOOGLE_API_KEY")
 llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash-latest", temperature=0, api_key=api_key)
-embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 persist_directory = "db"
 
 def process_pdf(file):
@@ -33,7 +32,27 @@ def process_pdf(file):
     chunks = text_spliter.split_documents(documents=docs)
     return chunks
 
+def load_existing_vector_store():
+    if os.path.exists(os.path.join(persist_directory)):
+        vector_store = Chroma(
+            persist_directory=persist_directory,
+            embedding_function=GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+        )
+        return vector_store
+    return None
 
+def add_to_vector_store(chuncks, vector_store=None):
+    if vector_store:
+        vector_store.add_documents(chuncks)
+    else:
+        vector_store = Chroma.from_documents(
+            documents=chuncks,
+            embedding=GoogleGenerativeAIEmbeddings(model="models/embedding-001"),
+            persist_directory=persist_directory,
+        )
+    return vector_store
+
+vector_store = load_existing_vector_store()
 
 st.set_page_config(
     page_title="Chat PyGPT",
@@ -57,7 +76,10 @@ with st.sidebar:
             for doc in uploaded_files:
                 chunks = process_pdf(file=doc)
                 all_chunks.extend(chunks)
-            
+            vector_store = add_to_vector_store(
+                chuncks= all_chunks,
+                vector_store = vector_store,
+            )
 
     model_options =[
         "gpt-3.5-turbo",
