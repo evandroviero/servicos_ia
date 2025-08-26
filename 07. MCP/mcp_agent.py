@@ -7,7 +7,6 @@ from mcp_servers import MCP_SERVERS_CONFIG, SMITHERY_API_KEY
 
 
 async def main():
-    print("Using SMITHERY_API_KEY:", SMITHERY_API_KEY)
     llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash-latest")
     memory = MemorySaver()
 
@@ -16,7 +15,7 @@ async def main():
     mcp_client = MultiServerMCPClient(MCP_SERVERS_CONFIG)
     tools = await mcp_client.get_tools()
 
-    agent_executor = await create_react_agent(
+    agent_executor = create_react_agent(
         model=llm,
         tools=tools,
         prompt=system_message,
@@ -30,7 +29,7 @@ async def main():
             "role": "user",
             "content": input("Digite: "),
         }
-        for step in agent_executor.stream(
+        async for step in agent_executor.astream(
             {"messages": [input_message]}, config, stream_mode = "values"
         ):
             step["messages"][-1].pretty_print()
